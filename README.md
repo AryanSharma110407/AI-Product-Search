@@ -78,6 +78,3 @@ The project demonstrates the core research phase of a bounded-autonomy procureme
 
 ---
 
-## 🏆 Hackathon Context
-
-This product comparison module represents **Phase 4 (Research)** of a complete **AI Procurement Decision & Execution Engine System**. The full concept integrates financial checks, corporate policies, human-in-the-loop approvals, and autonomous payouts using RazorpayX.
