@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+agno
+google-generativeai
+python-dotenv
+jinja2
+markdown
