@@ -1,7 +1,19 @@
-import os
-import markdown
-from dataclasses import dataclass
+"""
+app.py
+──────
+FastAPI application that serves two interfaces:
 
+1. Dashboard UI (GET /)         — Red & Black themed web page for humans
+2. JSON search  (POST /api/search)       — Returns rendered HTML for the dashboard
+3. Structured   (POST /api/research)     — Returns raw JSON for the orchestrator
+4. Category     (POST /api/research/category) — Returns multi-candidate JSON
+"""
+
+import os
+import json
+
+# pyrefly: ignore [missing-import]
+import markdown as md_lib
 from dotenv import load_dotenv
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, Request
@@ -9,104 +21,22 @@ from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 # pyrefly: ignore [missing-import]
 from fastapi.templating import Jinja2Templates
-# pyrefly: ignore [missing-import]
-from agno.agent import Agent, RunResponse
-# pyrefly: ignore [missing-import]
-from agno.tools.serpapi import SerpApiTools
-# pyrefly: ignore [missing-import]
-from agno.models.google import Gemini
+
+from research_agent import (
+    search_product,
+    research_category,
+    SingleProductResult,
+    CategoryResearchResult,
+)
 
 load_dotenv()
-
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-SERP_API_KEY = os.getenv("SERP_API_KEY")
-
-# ---------------------------------------------------------------------------
-# Agent builder
-# ---------------------------------------------------------------------------
-
-@dataclass
-class ProductSearchAgent:
-    """
-    A lightweight product-search agent that uses Gemini + SerpApi
-    to compare prices across Indian e-commerce platforms.
-    """
-
-    def build(self) -> Agent:
-        llm = Gemini(
-            id="gemini-2.5-flash",
-            api_key=GOOGLE_API_KEY,
-            temperature=0.1,
-            max_output_tokens=4096,
-        )
-
-        agent = Agent(
-            name="Product Price Comparator",
-            role="Search the web for current product pricing across Indian e-commerce platforms and return a structured comparison.",
-            model=llm,
-            tools=[
-                SerpApiTools(api_key=SERP_API_KEY),
-            ],
-            description=[
-                "You are a product search expert that finds CURRENT and VERIFIED pricing information from Indian e-commerce websites."
-            ],
-            instructions="""
-You are a professional product-price comparison agent for Indian buyers.
-
-**Workflow – follow every step in order:**
-
-Step 1  SEARCH
-  For the product the user asks about, run separate searches for each of these platforms:
-    • "{product}" price on amazon.in
-    • "{product}" price on flipkart.com
-    • "{product}" price on croma.com
-    • "{product}" price on reliancedigital.in
-    • "{product}" price on vijaysales.com
-
-Step 2  EXTRACT
-  From the search results, pull out:
-    • Exact product name / variant
-    • Current selling price (₹)
-    • MRP / original price if available
-    • Any discount or coupon
-    • Seller / platform
-    • Product URL (if found)
-
-Step 3  COMPARE
-  Build a comparison table in Markdown with these columns:
-    | Platform | Product Name | Price (₹) | MRP (₹) | Discount | Link |
-
-Step 4  RECOMMEND
-  Below the table, write a short "Best Deal" section:
-    • Which platform has the lowest verified price
-    • Any notable deals or coupons
-    • A one-line recommendation
-
-**Rules:**
-- Always use Indian Rupees (₹).
-- If a product is unavailable on a platform, write "Not Found" in that row.
-- Never invent prices. If you cannot find a price, say so.
-- Keep the output clean, short, and scannable.
-""",
-            markdown=True,
-            show_tool_calls=False,
-        )
-        return agent
-
-    def search(self, query: str) -> str:
-        """Run a search query and return the agent's markdown response."""
-        agent = self.build()
-        response: RunResponse = agent.run(query)
-        return response.content
-
 
 # ---------------------------------------------------------------------------
 # FastAPI application
 # ---------------------------------------------------------------------------
 
-app = FastAPI(title="Product Search Agent")
+app = FastAPI(title="AI Product Search Agent")
 templates = Jinja2Templates(directory="templates")
-agent = ProductSearchAgent()
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -116,10 +46,12 @@ async def home(request: Request):
 
 
 @app.post("/api/search")
-async def search_product(request: Request):
+async def search_product_ui(request: Request):
     """
+    Dashboard endpoint — returns rendered HTML for the UI.
+
     Accepts JSON: { "query": "iPhone 15 128GB" }
-    Returns JSON: { "result_html": "<rendered markdown>", "raw": "..." }
+    Returns JSON: { "result_html": "<table>...</table>", "raw_json": {...} }
     """
     body = await request.json()
     query = body.get("query", "").strip()
@@ -128,11 +60,87 @@ async def search_product(request: Request):
         return JSONResponse({"error": "Please enter a product to search."}, status_code=400)
 
     try:
-        raw_md = agent.search(query)
-        result_html = markdown.markdown(raw_md, extensions=["tables", "fenced_code"])
-        return JSONResponse({"result_html": result_html, "raw": raw_md})
+        result: SingleProductResult = search_product(query)
+
+        if result.error:
+            return JSONResponse({"error": result.error}, status_code=500)
+
+        # Build a markdown table from structured data for the UI
+        md_lines = [
+            f"## Price Comparison: {query}\n",
+            "| Platform | Product | Price (₹) | MRP (₹) | Link |",
+            "|----------|---------|-----------|---------|------|",
+        ]
+        for r in result.results:
+            mrp = f"₹{r.original_mrp:,}" if r.original_mrp else "—"
+            link = f"[View]({r.source_url})" if r.source_url else "—"
+            md_lines.append(
+                f"| {r.platform} | {r.product_name} | ₹{r.price_inr:,} | {mrp} | {link} |"
+            )
+
+        if result.best_deal:
+            bd = result.best_deal
+            md_lines.append(f"\n### 🏆 Best Deal\n")
+            md_lines.append(
+                f"**{bd.product_name}** on **{bd.platform}** at **₹{bd.price_inr:,}**"
+            )
+
+        rendered_md = "\n".join(md_lines)
+        result_html = md_lib.markdown(rendered_md, extensions=["tables", "fenced_code"])
+
+        return JSONResponse({
+            "result_html": result_html,
+            "raw_json": result.model_dump(),
+        })
+
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+
+@app.post("/api/research")
+async def research_product_json(request: Request):
+    """
+    Orchestrator endpoint — returns raw structured JSON.
+
+    Accepts JSON: { "query": "Dell Inspiron 15 laptop" }
+    Returns JSON: SingleProductResult schema
+    """
+    body = await request.json()
+    query = body.get("query", "").strip()
+
+    if not query:
+        return JSONResponse({"error": "Query is required."}, status_code=400)
+
+    result: SingleProductResult = search_product(query)
+    return JSONResponse(result.model_dump())
+
+
+@app.post("/api/research/category")
+async def research_category_json(request: Request):
+    """
+    Orchestrator endpoint — returns multi-candidate structured JSON for a category.
+
+    Accepts JSON: {
+        "category": "office laptops",
+        "count": 3,
+        "budget_hint": "under 45000"
+    }
+    Returns JSON: CategoryResearchResult schema
+    """
+    body = await request.json()
+    category = body.get("category", "").strip()
+    count = body.get("count", 3)
+    budget_hint = body.get("budget_hint")
+
+    if not category:
+        return JSONResponse({"error": "Category is required."}, status_code=400)
+
+    result: CategoryResearchResult = research_category(
+        category=category,
+        count=count,
+        budget_hint=budget_hint,
+    )
+    return JSONResponse(result.model_dump())
 
 
 # ---------------------------------------------------------------------------
