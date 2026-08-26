@@ -2,6 +2,7 @@ fastapi
 uvicorn[standard]
 agno
 google-generativeai
+groq
 python-dotenv
 jinja2
 markdown

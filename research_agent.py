@@ -25,12 +25,12 @@ from agno.agent import Agent, RunResponse
 # pyrefly: ignore [missing-import]
 from agno.tools.serpapi import SerpApiTools
 # pyrefly: ignore [missing-import]
-from agno.models.google import Gemini
+from agno.models.groq import Groq
 
 load_dotenv()
 
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SERP_API_KEY = os.getenv("SERP_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 logger = logging.getLogger(__name__)
 
@@ -171,11 +171,10 @@ Output Schema:
 
 def _build_agent(system_prompt: str) -> Agent:
     """Build an Agno Agent configured for structured JSON output."""
-    llm = Gemini(
-        id="gemini-2.5-flash",
-        api_key=GOOGLE_API_KEY,
+    llm = Groq(
+        id="openai/gpt-oss-120b",
+        api_key=GROQ_API_KEY,
         temperature=0.1,
-        max_output_tokens=8192,
     )
 
     agent = Agent(
