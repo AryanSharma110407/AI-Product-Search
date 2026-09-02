@@ -1,26 +1,20 @@
-# Byte-compiled / Python cache
+# Python cache
 __pycache__/
 *.py[cod]
 
-# Environments & API Keys
+# Secret Environment Variables & API Keys
 .env
 .venv
 env/
 venv/
 
-# Pyrefly & IDE
-.pyrefly/
-.vscode/
-.idea/
-
-# Temporary / Scratch & Test files
+# Temporary Scratch Scripts & Test Files
 finance_engine.py
 test_*.py
 test*.py
 check_api_quotas.py
 
-# Large ML Generated Datasets & Binary Model Checkpoints
-ml_engine/financial_dataset.csv
-ml_engine/models/*.joblib
-*.joblib
-*.csv
+# IDE & Tool Cache
+.pyrefly/
+.vscode/
+.idea/
