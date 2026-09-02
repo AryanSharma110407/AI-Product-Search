@@ -27,11 +27,10 @@ from agno.agent import Agent, RunResponse
 # pyrefly: ignore [missing-import]
 from agno.models.google import Gemini
 
-# Import all tools
+# Import tools
 from database.db_setup import get_department_finances, verify_financial_risk
 from database.audit_logger import log_procurement_decision, request_human_approval
 from rag_engine.policy_rag_tool import check_company_policy
-from ml_engine.forecast_tool import predict_financial_impact
 from agents.research_agent import search_product_deals
 
 load_dotenv()
@@ -51,7 +50,7 @@ def tool_check_finances(department: str) -> str:
 
 
 def tool_evaluate_risk(department: str, quantity: int, unit_price: float) -> str:
-    """Evaluate the financial risk of a proposed purchase. All math is done in Python, not by the LLM."""
+    """Evaluate the financial risk of a proposed purchase using deterministic python engine rules."""
     result = verify_financial_risk(department, quantity, unit_price)
     return json.dumps(result, indent=2)
 
@@ -67,26 +66,6 @@ def tool_search_products(query: str, budget_ceiling: float) -> str:
 def tool_check_policy(query: str) -> str:
     """Look up company procurement policy rules. Use this to check brand restrictions, approval requirements, and spending limits."""
     return check_company_policy(query, top_k=3)
-
-
-def tool_predict_impact(
-    current_cash: float,
-    monthly_revenue: float,
-    monthly_expenses: float,
-    debt_obligations: float,
-    proposed_purchase_amount: float,
-    purchase_category: str,
-) -> str:
-    """Predict the financial impact of a purchase 3 months into the future using the ML forecasting model. Returns predicted cash position, runway, and risk level."""
-    result = predict_financial_impact(
-        current_cash=current_cash,
-        monthly_revenue=monthly_revenue,
-        monthly_expenses=monthly_expenses,
-        debt_obligations=debt_obligations,
-        proposed_purchase_amount=proposed_purchase_amount,
-        purchase_category=purchase_category,
-    )
-    return json.dumps(result, indent=2)
 
 
 def tool_log_decision(
@@ -165,22 +144,17 @@ The system will automatically filter out products above the budget.
 For the best candidate product, call `tool_evaluate_risk(department, quantity, unit_price)`
 to get a deterministic risk assessment.
 
-### Step 6: Predict Future Financial Impact
-Call `tool_predict_impact(...)` with the company's financial data and the proposed
-purchase amount. This uses a trained ML model to predict the 3-month cash position.
-
-### Step 7: Make Your Decision
+### Step 6: Make Your Decision & Log Audit Trail
 Based on ALL evidence gathered:
 - If risk is LOW and policy is satisfied: APPROVE and log the decision
 - If risk is MEDIUM: APPROVE with caution notes, or suggest alternatives
 - If risk is HIGH: Request human approval via `tool_request_approval()`
-- If risk is BLOCKED: Search for cheaper alternatives or reject
+- If risk is BLOCKED: Reject or search for cheaper alternatives
 
-### Step 8: Log the Decision
 Always call `tool_log_decision(...)` to record your final decision in the audit trail.
 
 ## Important Rules
-1. NEVER do financial calculations yourself. Always use the tools.
+1. NEVER do financial calculations yourself. Always use the deterministic risk tool.
 2. NEVER approve a purchase that violates company policy.
 3. ALWAYS check policy before making a decision.
 4. If a product requires CTO sign-off (e.g., Apple products), flag it.
@@ -193,7 +167,7 @@ Always call `tool_log_decision(...)` to record your final decision in the audit 
 # ---------------------------------------------------------------------------
 
 def build_orchestrator() -> Agent:
-    """Build the Agno AI orchestrator agent with all tools."""
+    """Build the Agno AI orchestrator agent with deterministic tools."""
     llm = Gemini(
         id="gemini-2.0-flash",
         api_key=GOOGLE_API_KEY,
@@ -203,14 +177,13 @@ def build_orchestrator() -> Agent:
 
     agent = Agent(
         name="TechNova Procurement Orchestrator",
-        role="Autonomous procurement agent that evaluates purchase requests using financial data, company policy, market search, and ML predictions.",
+        role="Autonomous procurement agent that evaluates purchase requests using financial data, company policy, market search, and deterministic financial rules.",
         model=llm,
         tools=[
             tool_check_finances,
             tool_evaluate_risk,
             tool_search_products,
             tool_check_policy,
-            tool_predict_impact,
             tool_log_decision,
             tool_request_approval,
         ],
