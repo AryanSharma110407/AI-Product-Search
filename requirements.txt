@@ -5,3 +5,7 @@ google-generativeai
 python-dotenv
 jinja2
 markdown
+scikit-learn
+xgboost
+joblib
+numpy

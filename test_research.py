@@ -27,21 +27,21 @@ def test_single_product():
     for r in result.results:
         print(f"\n    Platform:    {r.platform}")
         print(f"    Product:     {r.product_name}")
-        print(f"    Price:       ₹{r.price_inr:,}")
-        print(f"    MRP:         ₹{r.original_mrp:,}" if r.original_mrp else "    MRP:         —")
+        print(f"    Price:       Rs {r.price_inr:,}")
+        print(f"    MRP:         Rs {r.original_mrp:,}" if r.original_mrp else "    MRP:         —")
         print(f"    URL:         {r.source_url or '—'}")
         print(f"    Available:   {r.availability}")
 
     if result.best_deal:
         bd = result.best_deal
-        print(f"\n  🏆 Best Deal: {bd.product_name} on {bd.platform} @ ₹{bd.price_inr:,}")
+        print(f"\n  Best Deal: {bd.product_name} on {bd.platform} @ Rs {bd.price_inr:,}")
 
     # Validate structure
     data = result.model_dump()
     assert isinstance(data, dict), "Result should be a dict"
     assert "results" in data, "Result must contain 'results' key"
     assert "query" in data, "Result must contain 'query' key"
-    print("\n  ✅ Structure validation passed.\n")
+    print("\n  Structure validation passed.\n")
 
     # Print raw JSON for inspection
     print("  Raw JSON output:")
@@ -68,7 +68,7 @@ def test_category_research():
 
     for c in result.candidates:
         print(f"\n    [{c.platform}] {c.product_name}")
-        print(f"      Price:   ₹{c.price_inr:,}")
+        print(f"      Price:   Rs {c.price_inr:,}")
         if c.specs.ram:
             print(f"      RAM:     {c.specs.ram}")
         if c.specs.screen_size:
@@ -79,7 +79,7 @@ def test_category_research():
     assert isinstance(data, dict), "Result should be a dict"
     assert "candidates" in data, "Result must contain 'candidates' key"
     assert "category" in data, "Result must contain 'category' key"
-    print("\n  ✅ Structure validation passed.\n")
+    print("\n  Structure validation passed.\n")
 
     # Print raw JSON for inspection
     print("  Raw JSON output:")
@@ -88,7 +88,7 @@ def test_category_research():
 
 
 if __name__ == "__main__":
-    print("\n🔬 Running Research Agent Integration Tests\n")
+    print("\nRunning Research Agent Integration Tests\n")
 
     passed = 0
     failed = 0
@@ -97,15 +97,16 @@ if __name__ == "__main__":
         if test_single_product():
             passed += 1
     except Exception as e:
-        print(f"\n  ❌ Test 1 FAILED: {e}")
+        print(f"\n  Test 1 FAILED: {e}")
         failed += 1
 
     try:
         if test_category_research():
             passed += 1
     except Exception as e:
-        print(f"\n  ❌ Test 2 FAILED: {e}")
+        print(f"\n  Test 2 FAILED: {e}")
         failed += 1
+
 
     print("\n" + "=" * 60)
     print(f"Results: {passed} passed, {failed} failed")

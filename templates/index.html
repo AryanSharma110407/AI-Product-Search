@@ -3,470 +3,860 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Product Search Agent</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>Agentic Procurement System — TechNova</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset ─────────────────────────────────────────── */
+    /* ── Reset & Baseline ─────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    /* ── Palette ───────────────────────────────────────── */
+    
     :root {
-      --bg:        #0a0a0a;
-      --surface:   #111111;
-      --surface-2: #1a1a1a;
-      --border:    #2a2a2a;
-      --red:       #e50914;
-      --red-dim:   #b2070f;
-      --red-glow:  rgba(229, 9, 20, .25);
-      --text:      #f0f0f0;
-      --text-dim:  #888888;
-      --white:     #ffffff;
+      --bg:          #08080a;
+      --surface:     #111115;
+      --surface-2:   #181820;
+      --surface-3:   #22222e;
+      --border:      #2a2a38;
+      --border-bright:#3f3f56;
+      --red:         #e50914;
+      --red-dim:     #b2070f;
+      --red-glow:    rgba(229, 9, 20, 0.25);
+      --green:       #10b981;
+      --green-glow:  rgba(16, 185, 129, 0.2);
+      --amber:       #f59e0b;
+      --amber-glow:  rgba(245, 158, 11, 0.2);
+      --blue:        #3b82f6;
+      --purple:      #8b5cf6;
+      --text:        #f1f5f9;
+      --text-muted:  #94a3b8;
+      --text-dim:    #64748b;
+      --font-sans:   'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono:   'JetBrains Mono', monospace;
     }
 
     body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--bg);
+      background-color: var(--bg);
       color: var(--text);
+      font-family: var(--font-sans);
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      line-height: 1.5;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(229, 9, 20, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
     }
 
-    /* ── Top bar ───────────────────────────────────────── */
+    /* ── Top Bar & Treasury Ticker ────────────────────────── */
     .topbar {
-      width: 100%;
-      padding: 18px 32px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(8px);
+    }
+    
+    .brand {
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface);
     }
-    .topbar .logo {
-      width: 32px; height: 32px;
-      background: var(--red);
+
+    .brand-logo {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
       border-radius: 8px;
-      display: grid; place-items: center;
-      font-weight: 800; font-size: 16px; color: var(--white);
-    }
-    .topbar h1 {
-      font-size: 18px; font-weight: 700; color: var(--white);
-    }
-    .topbar .badge {
-      margin-left: auto;
-      font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px;
-      padding: 4px 10px; border-radius: 4px;
-      background: var(--red); color: var(--white);
-    }
-
-    /* ── Container ─────────────────────────────────────── */
-    .container {
-      width: 100%;
-      max-width: 900px;
-      padding: 40px 20px 60px;
       display: flex;
-      flex-direction: column;
-      gap: 28px;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      box-shadow: 0 0 16px var(--red-glow);
     }
 
-    /* ── Hero text ─────────────────────────────────────── */
+    .brand h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand h1 span {
+      color: var(--red);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: var(--green);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ── Layout Container ─────────────────────────────────── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+
+    /* ── Hero Section ─────────────────────────────────────── */
     .hero {
       text-align: center;
-    }
-    .hero h2 {
-      font-size: 32px; font-weight: 800; color: var(--white);
-      line-height: 1.2;
-    }
-    .hero h2 span { color: var(--red); }
-    .hero p {
-      margin-top: 10px; font-size: 15px; color: var(--text-dim); max-width: 560px; margin-inline: auto;
+      margin-bottom: 32px;
     }
 
-    /* ── Search card ───────────────────────────────────── */
-    .search-card {
+    .hero h2 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .hero h2 span {
+      color: var(--red);
+      background: linear-gradient(135deg, #ff4b4b, var(--red));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ── Procurement Form Card ────────────────────────────── */
+    .procure-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
     }
-    .search-card label {
-      font-size: 13px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: .6px;
+
+    .procure-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--red), var(--purple), var(--blue));
     }
-    .input-row {
-      margin-top: 12px;
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr 120px 160px;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 600px) {
+      .form-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-group {
       display: flex;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
     }
-    .input-row input {
-      flex: 1;
-      padding: 14px 18px;
+
+    .form-group label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-control {
       background: var(--surface-2);
       border: 1px solid var(--border);
+      color: var(--text);
+      padding: 12px 14px;
       border-radius: 10px;
-      color: var(--white);
-      font-size: 15px;
+      font-size: 14px;
       font-family: inherit;
       outline: none;
-      transition: border-color .2s;
+      transition: all 0.2s;
     }
-    .input-row input::placeholder { color: #555; }
-    .input-row input:focus {
+
+    .form-control:focus {
       border-color: var(--red);
       box-shadow: 0 0 0 3px var(--red-glow);
     }
-    .input-row button {
-      padding: 14px 28px;
-      background: var(--red);
-      color: var(--white);
-      border: none;
-      border-radius: 10px;
-      font-size: 15px; font-weight: 700;
+
+    select.form-control {
       cursor: pointer;
-      transition: background .2s, transform .1s;
-      white-space: nowrap;
-    }
-    .input-row button:hover { background: var(--red-dim); }
-    .input-row button:active { transform: scale(.97); }
-    .input-row button:disabled {
-      opacity: .5; cursor: not-allowed;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
     }
 
-    /* ── Quick tags ────────────────────────────────────── */
-    .quick-tags {
-      margin-top: 14px;
-      display: flex; flex-wrap: wrap; gap: 8px;
+    .btn-procure {
+      background: linear-gradient(135deg, var(--red), var(--red-dim));
+      color: #fff;
+      border: none;
+      padding: 14px 24px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 20px var(--red-glow);
+      width: 100%;
     }
-    .quick-tags span {
-      font-size: 12px; padding: 6px 14px;
+
+    .btn-procure:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(229, 9, 20, 0.4);
+    }
+
+    .btn-procure:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* ── Quick Preset Chips ───────────────────────────────── */
+    .quick-scenarios {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scenario-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 600;
+      margin-right: 4px;
+    }
+
+    .chip {
       background: var(--surface-2);
       border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 12px;
       border-radius: 20px;
-      color: var(--text-dim);
+      font-size: 12px;
       cursor: pointer;
-      transition: border-color .2s, color .2s;
-    }
-    .quick-tags span:hover {
-      border-color: var(--red); color: var(--red);
+      transition: all 0.2s;
     }
 
-    /* ── Status bar ────────────────────────────────────── */
-    .status-bar {
+    .chip:hover {
+      border-color: var(--red);
+      color: var(--text);
+      background: var(--surface-3);
+    }
+
+    /* ── Live Step Progress Indicator ─────────────────────── */
+    .telemetry-progress {
       display: none;
-      align-items: center;
-      gap: 12px;
-      padding: 16px 24px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
     }
-    .status-bar.active { display: flex; }
 
-    .spinner {
-      width: 20px; height: 20px;
-      border: 3px solid var(--border);
-      border-top-color: var(--red);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
+    .telemetry-progress.active {
+      display: block;
     }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
-    .status-bar .steps {
-      display: flex; gap: 8px; flex-wrap: wrap;
+    .step-list {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
     }
-    .status-bar .step {
-      font-size: 12px; font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 6px;
+
+    @media (max-width: 768px) {
+      .step-list { grid-template-columns: 1fr; }
+    }
+
+    .step-item {
       background: var(--surface-2);
-      color: var(--text-dim);
       border: 1px solid var(--border);
-      transition: all .3s;
-    }
-    .status-bar .step.done {
-      background: rgba(229,9,20,.12);
-      border-color: var(--red);
-      color: var(--red);
-    }
-    .status-bar .step.active-step {
-      background: var(--red);
-      border-color: var(--red);
-      color: var(--white);
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: .6; }
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
     }
 
-    /* ── Results ────────────────────────────────────────── */
-    .results-card {
-      display: none;
+    .step-item.active {
+      border-color: var(--amber);
+      color: var(--amber);
+      background: var(--amber-glow);
+    }
+
+    .step-item.done {
+      border-color: var(--green);
+      color: var(--green);
+      background: var(--green-glow);
+    }
+
+    /* ── Telemetry Grid Dashboard ─────────────────────────── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 900px) {
+      .dashboard-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 14px;
-      overflow: hidden;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
     }
-    .results-card.visible { display: block; }
 
-    .results-header {
+    .card-full {
+      grid-column: 1 / -1;
+    }
+
+    .card-header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 18px 24px;
+      justify-content: space-between;
+      padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
-    .results-header .dot {
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #22c55e;
-    }
-    .results-header h3 {
-      font-size: 15px; font-weight: 700; color: var(--white);
-    }
-    .results-header .query-echo {
-      margin-left: auto;
-      font-size: 12px; color: var(--text-dim);
-      background: var(--surface-2); padding: 4px 12px; border-radius: 6px;
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .results-body {
-      padding: 24px;
-      font-size: 14px;
-      line-height: 1.75;
-      color: var(--text);
+    .card-title .icon {
+      font-size: 16px;
     }
 
-    /* Markdown table styling */
-    .results-body table {
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat( auto-fit, minmax(130px, 1fr) );
+      gap: 12px;
+    }
+
+    .metric-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .metric-box .label {
+      font-size: 11px;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .metric-box .value {
+      font-family: var(--font-mono);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    /* ── Badges ───────────────────────────────────────────── */
+    .badge-approved { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid #10b981; }
+    .badge-pending  { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid #f59e0b; }
+    .badge-blocked  { background: rgba(229, 9, 20, 0.15);   color: #e50914; border: 1px solid #e50914; }
+    .badge-critical { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid #a78bfa; }
+
+    .tag-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Policy Markdown / Deals Table ────────────────────── */
+    .policy-box {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 13px;
+      color: var(--text-muted);
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      font-family: var(--font-mono);
+    }
+
+    table.deals-table {
       width: 100%;
       border-collapse: collapse;
-      margin: 16px 0;
       font-size: 13px;
     }
-    .results-body th {
+
+    table.deals-table th, table.deals-table td {
+      padding: 10px 12px;
       text-align: left;
-      padding: 12px 14px;
-      background: var(--surface-2);
-      border-bottom: 2px solid var(--red);
-      color: var(--red);
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 11px;
-      letter-spacing: .5px;
-    }
-    .results-body td {
-      padding: 11px 14px;
       border-bottom: 1px solid var(--border);
-      color: var(--text);
-    }
-    .results-body tr:hover td {
-      background: rgba(229,9,20,.04);
     }
 
-    .results-body a {
-      color: var(--red);
-      text-decoration: none;
-      font-weight: 500;
-    }
-    .results-body a:hover { text-decoration: underline; }
-
-    .results-body strong { color: var(--white); }
-    .results-body h1, .results-body h2, .results-body h3, .results-body h4 {
-      color: var(--white);
-      margin-top: 20px;
-      margin-bottom: 8px;
-    }
-    .results-body h2 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
-    .results-body h3 { font-size: 15px; }
-    .results-body ul, .results-body ol { padding-left: 20px; }
-    .results-body li { margin-bottom: 4px; }
-    .results-body code {
+    table.deals-table th {
+      color: var(--text-muted);
+      font-weight: 600;
       background: var(--surface-2);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 13px;
+      font-size: 11px;
+      text-transform: uppercase;
     }
 
-    /* ── Error ──────────────────────────────────────────── */
-    .error-msg {
-      display: none;
-      padding: 14px 20px;
-      background: rgba(229,9,20,.1);
-      border: 1px solid var(--red);
-      border-radius: 10px;
-      color: var(--red);
-      font-size: 14px; font-weight: 500;
+    table.deals-table td.price {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--green);
     }
-    .error-msg.visible { display: block; }
 
-    /* ── Footer ─────────────────────────────────────────── */
+    /* ── Decision Banner ──────────────────────────────────── */
+    .decision-banner {
+      padding: 20px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .decision-banner.APPROVED { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); }
+    .decision-banner.PENDING_APPROVAL, .decision-banner.PENDING_CTO_APPROVAL { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); }
+    .decision-banner.BLOCKED { background: rgba(229, 9, 20, 0.1); border: 1px solid rgba(229, 9, 20, 0.3); }
+
+    .decision-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .decision-reason {
+      font-size: 14px;
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
     .footer {
-      margin-top: auto;
-      padding: 24px;
       text-align: center;
-      font-size: 12px;
-      color: #444;
+      padding: 32px 0;
+      color: var(--text-dim);
+      font-size: 13px;
       border-top: 1px solid var(--border);
-      width: 100%;
-    }
-    .footer span { color: var(--red); }
-
-    /* ── Responsive ─────────────────────────────────────── */
-    @media (max-width: 640px) {
-      .input-row { flex-direction: column; }
-      .hero h2 { font-size: 24px; }
-      .results-body table { font-size: 11px; }
-      .results-body th, .results-body td { padding: 8px 6px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Top bar -->
+  <!-- Top Bar -->
   <div class="topbar">
-    <div class="logo">P</div>
-    <h1>Product Search Agent</h1>
-    <div class="badge">AI Powered</div>
+    <div class="brand">
+      <div class="brand-logo">T</div>
+      <h1>TechNova <span>Procurement Orchestrator</span></h1>
+    </div>
+    <div class="status-badge">
+      <div class="status-dot"></div>
+      Agno AI &middot; ML Forecast &middot; RAG Active
+    </div>
   </div>
 
   <div class="container">
 
     <!-- Hero -->
     <div class="hero">
-      <h2>Compare <span>Prices</span> Across Platforms</h2>
-      <p>Enter any product name. Our AI agent searches Amazon, Flipkart, Croma, and more to find the best deal for you.</p>
+      <h2>Autonomous <span>Agentic Procurement</span> Engine</h2>
+      <p>Evaluate department purchases using live treasury data, corporate RAG policy compliance, live e-commerce web search, and 3-month ML cash forecasting.</p>
     </div>
 
-    <!-- Search -->
-    <div class="search-card">
-      <label>What are you looking for?</label>
-      <div class="input-row">
-        <input type="text" id="searchInput" placeholder="e.g. iPhone 15 128GB, Logitech MX Master 3S, Sony WH-1000XM5 ..." />
-        <button id="searchBtn" onclick="runSearch()">Search</button>
+    <!-- Procurement Input Card -->
+    <div class="procure-card">
+      <form id="procureForm" onsubmit="executeProcurement(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Department</label>
+            <select id="deptSelect" class="form-control">
+              <option value="Engineering">Engineering</option>
+              <option value="Sales">Sales</option>
+              <option value="Marketing">Marketing</option>
+              <option value="HR">HR</option>
+              <option value="Operations">Operations</option>
+              <option value="Finance">Finance</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Product Request / Query</label>
+            <input type="text" id="productQuery" class="form-control" placeholder="e.g. Dell Inspiron 15 16GB RAM laptop" required />
+          </div>
+
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" id="quantityInput" class="form-control" value="3" min="1" max="100" required />
+          </div>
+
+          <div class="form-group">
+            <label>Unit Budget (₹)</label>
+            <input type="number" id="budgetInput" class="form-control" value="55000" min="1000" step="1000" required />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 200px; gap: 16px; align-items: center;">
+          <div class="quick-scenarios">
+            <span class="scenario-label">Quick Scenarios:</span>
+            <span class="chip" onclick="fillPreset('Engineering', 'Dell Inspiron 15 laptop', 3, 55000)">Dev Laptops (Eng)</span>
+            <span class="chip" onclick="fillPreset('Sales', 'Lenovo ThinkPad laptop', 2, 40000)">Sales Laptops</span>
+            <span class="chip" onclick="fillPreset('Marketing', 'Apple MacBook Pro 14 inch', 1, 150000)">MacBook Pro (CTO Rule)</span>
+            <span class="chip" onclick="fillPreset('Operations', 'LG 27 inch IPS monitor', 5, 15000)">5 Monitors (Ops)</span>
+          </div>
+
+          <button type="submit" id="btnSubmit" class="btn-procure">
+            <span>⚡ Execute Agent Pipeline</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Live Telemetry Step Indicator -->
+    <div class="telemetry-progress" id="telemetryBar">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 12px; color: var(--text-muted);">
+        <span>Agentic Pipeline Execution Telemetry</span>
+        <span id="telemetryTimer" style="font-family: var(--font-mono); color: var(--amber);">Elapsed: 0.0s</span>
       </div>
-      <div class="quick-tags">
-        <span onclick="fillQuery('iPhone 16 128GB')">iPhone 16</span>
-        <span onclick="fillQuery('Samsung Galaxy S24')">Galaxy S24</span>
-        <span onclick="fillQuery('Logitech MX Master 3S')">MX Master 3S</span>
-        <span onclick="fillQuery('Sony WH-1000XM5')">Sony XM5</span>
-        <span onclick="fillQuery('Dell Inspiron 15 laptop')">Dell Inspiron 15</span>
-        <span onclick="fillQuery('LG 27 inch IPS monitor')">LG 27" Monitor</span>
+      <div class="step-list">
+        <div class="step-item" id="s1"><span>💳 1. Treasury Snapshot</span><span id="s1-status" style="margin-left: auto; font-family: var(--font-mono); font-size: 10px;">0%</span></div>
+        <div class="step-item" id="s2"><span>📖 2. Policy RAG Search</span><span id="s2-status" style="margin-left: auto; font-family: var(--font-mono); font-size: 10px;">0%</span></div>
+        <div class="step-item" id="s3"><span>🔎 3. Market Deals Search</span><span id="s3-status" style="margin-left: auto; font-family: var(--font-mono); font-size: 10px;">0%</span></div>
+        <div class="step-item" id="s4"><span>📈 4. ML Cash Forecast</span><span id="s4-status" style="margin-left: auto; font-family: var(--font-mono); font-size: 10px;">0%</span></div>
+        <div class="step-item" id="s5"><span>⚖️ 5. Final Decision</span><span id="s5-status" style="margin-left: auto; font-family: var(--font-mono); font-size: 10px;">0%</span></div>
       </div>
     </div>
 
-    <!-- Status -->
-    <div class="status-bar" id="statusBar">
-      <div class="spinner"></div>
-      <div class="steps">
-        <div class="step" id="step1">Thinking</div>
-        <div class="step" id="step2">Searching Web</div>
-        <div class="step" id="step3">Comparing Prices</div>
-        <div class="step" id="step4">Done</div>
-      </div>
-    </div>
+    <!-- Dynamic 4-Tier Dashboard Results -->
+    <div id="resultsWrapper" style="display: none;">
 
-    <!-- Error -->
-    <div class="error-msg" id="errorMsg"></div>
-
-    <!-- Results -->
-    <div class="results-card" id="resultsCard">
-      <div class="results-header">
-        <div class="dot"></div>
-        <h3>Search Results</h3>
-        <div class="query-echo" id="queryEcho"></div>
+      <!-- Decision Banner (Top) -->
+      <div class="card card-full" style="margin-bottom: 20px;">
+        <div class="decision-banner" id="decisionBanner">
+          <div class="decision-header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span id="decisionStatusBadge" class="tag-badge">STATUS</span>
+              <h3 id="decisionTitle" style="font-size: 18px;">Procurement Decision Summary</h3>
+            </div>
+            <span style="font-family: var(--font-mono); font-size: 13px; color: var(--text-muted);" id="auditLogId">Audit ID: #--</span>
+          </div>
+          <div class="decision-reason" id="decisionReason">Evaluating request...</div>
+        </div>
       </div>
-      <div class="results-body" id="resultsBody"></div>
+
+      <div class="dashboard-grid">
+
+        <!-- Tier 1: Department Treasury -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">💳</span> Tier 1: Department Treasury Snapshot
+            </div>
+            <span id="deptNameBadge" style="font-size: 12px; font-weight: 700; color: var(--blue);">DEPARTMENT</span>
+          </div>
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="label">Account Balance</div>
+              <div class="value" id="tBalance">₹0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Unpaid Commitments</div>
+              <div class="value" id="tCommitments" style="color: var(--amber);">₹0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Available Headroom</div>
+              <div class="value" id="tAvailable" style="color: var(--green);">₹0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Auto-Approval Limit</div>
+              <div class="value" id="tAutoLimit">₹0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tier 4: ML Financial Forecast -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">📈</span> Tier 4: ML Cash Forecast (Look Forward)
+            </div>
+            <span id="mlRiskBadge" class="tag-badge badge-approved">LOW RISK</span>
+          </div>
+          <div class="metric-row">
+            <div class="metric-box">
+              <div class="label">Predicted Cash (90D)</div>
+              <div class="value" id="mCash">₹0</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Cash Runway</div>
+              <div class="value" id="mRunway">0.0 mos</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Shortage Risk %</div>
+              <div class="value" id="mShortage">0.0%</div>
+            </div>
+            <div class="metric-box">
+              <div class="label">Model Confidence</div>
+              <div class="value" id="mConfidence">0%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tier 2: Policy RAG Engine -->
+        <div class="card card-full">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">📖</span> Tier 2: Financial Policy RAG Search
+            </div>
+            <span id="ctoFlagBadge" style="display: none; font-size: 11px; padding: 2px 8px; border-radius: 4px; background: rgba(229,9,20,0.2); color: var(--red); border: 1px solid var(--red);">⚠️ APPLE CTO SIGN-OFF REQUIRED</span>
+          </div>
+          <div class="policy-box" id="policyContent">Searching company policy...</div>
+        </div>
+
+        <!-- Tier 3: Market Search Deals -->
+        <div class="card card-full">
+          <div class="card-header">
+            <div class="card-title">
+              <span class="icon">🔎</span> Tier 3: Budget-Filtered Market Deals (SerpApi + Gemini)
+            </div>
+            <span style="font-size: 12px; color: var(--text-muted);" id="dealsCount">0 Deals Found Under Budget</span>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="deals-table">
+              <thead>
+                <tr>
+                  <th>Platform</th>
+                  <th>Product Variant</th>
+                  <th>Price (₹)</th>
+                  <th>Budget Savings</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dealsTableBody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-dim);">No deals loaded yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
     </div>
 
   </div>
 
   <div class="footer">
-    Built with <span>♥</span> using Gemini &amp; SerpApi &middot; AI Product Search Agent
+    TechNova Solutions Pvt. Ltd. &middot; Autonomous Agentic Procurement Platform &middot; Built with Agno, XGBoost &amp; Gemini
   </div>
 
   <script>
-    const input  = document.getElementById('searchInput');
-    const btn    = document.getElementById('searchBtn');
-    const status = document.getElementById('statusBar');
-    const error  = document.getElementById('errorMsg');
-    const card   = document.getElementById('resultsCard');
-    const body   = document.getElementById('resultsBody');
-    const echo   = document.getElementById('queryEcho');
-    const steps  = [
-      document.getElementById('step1'),
-      document.getElementById('step2'),
-      document.getElementById('step3'),
-      document.getElementById('step4'),
-    ];
-
-    function fillQuery(q) {
-      input.value = q;
-      input.focus();
+    function fillPreset(dept, query, qty, budget) {
+      document.getElementById('deptSelect').value = dept;
+      document.getElementById('productQuery').value = query;
+      document.getElementById('quantityInput').value = qty;
+      document.getElementById('budgetInput').value = budget;
     }
 
-    // Simulate step progression
-    function setStep(idx) {
-      steps.forEach((s, i) => {
-        s.classList.remove('done', 'active-step');
-        if (i < idx) s.classList.add('done');
-        else if (i === idx) s.classList.add('active-step');
-      });
+    function setStep(stepNum, statusText) {
+      for (let i = 1; i <= 5; i++) {
+        const el = document.getElementById('s' + i);
+        const statusEl = document.getElementById('s' + i + '-status');
+        
+        if (i < stepNum) {
+          el.classList.remove('active');
+          el.classList.add('done');
+          statusEl.textContent = '100%';
+        } else if (i === stepNum) {
+          el.classList.remove('done');
+          el.classList.add('active');
+          statusEl.textContent = statusText || 'Running...';
+        } else {
+          el.classList.remove('active', 'done');
+          statusEl.textContent = '0%';
+        }
+      }
     }
 
-    async function runSearch() {
-      const query = input.value.trim();
-      if (!query) { input.focus(); return; }
+    function formatINR(val) {
+      return '₹' + Math.round(val).toLocaleString('en-IN');
+    }
 
-      // Reset UI
-      error.classList.remove('visible');
-      card.classList.remove('visible');
-      status.classList.add('active');
+    let timerInterval = null;
+
+    async function executeProcurement(e) {
+      e.preventDefault();
+
+      const department = document.getElementById('deptSelect').value;
+      const product_query = document.getElementById('productQuery').value.trim();
+      const quantity = parseInt(document.getElementById('quantityInput').value);
+      const unit_budget = parseFloat(document.getElementById('budgetInput').value);
+
+      if (!product_query) return;
+
+      const btn = document.getElementById('btnSubmit');
+      const telemetry = document.getElementById('telemetryBar');
+      const results = document.getElementById('resultsWrapper');
+      const timerEl = document.getElementById('telemetryTimer');
+
       btn.disabled = true;
-      btn.textContent = 'Searching…';
+      btn.innerHTML = '<span>⚡ Running Agentic Loop...</span>';
+      telemetry.classList.add('active');
+      results.style.display = 'none';
 
-      // Simulate steps
-      setStep(0);
-      await sleep(800);
-      setStep(1);
+      // Start live timer
+      const startTime = Date.now();
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        timerEl.textContent = `Elapsed: ${elapsed}s`;
+      }, 100);
+
+      // Progressive telemetry updates
+      setStep(1, 'Verifying...'); await sleep(200);
+      setStep(2, 'Indexing Policy...'); await sleep(200);
+      setStep(3, 'Searching Deals...');
 
       try {
-        const res = await fetch('/api/search', {
+        const API_BASE = window.location.port === '8000' ? '' : 'http://127.0.0.1:8000';
+        const res = await fetch(API_BASE + '/api/procure', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query }),
+          body: JSON.stringify({
+            department,
+            product_query,
+            quantity,
+            unit_budget,
+            category: 'Hardware'
+          }),
         });
 
-        setStep(2);
-        await sleep(400);
+        setStep(4, 'Predicting Risk...'); await sleep(150);
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Pipeline failed.');
 
-        if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+        setStep(5, 'Decision Complete');
+        setStep(6); // Marks all 1 to 5 as 100% done!
 
-        setStep(3);
-        steps.forEach(s => { s.classList.remove('active-step'); s.classList.add('done'); });
+        if (timerInterval) clearInterval(timerInterval);
+        const totalElapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        timerEl.textContent = `Completed in ${totalElapsed}s`;
 
-        echo.textContent = query;
-        body.innerHTML = data.result_html;
-        card.classList.add('visible');
+        // Render Telemetry Cards
+        // Tier 1 Treasury
+        document.getElementById('deptNameBadge').textContent = data.treasury.department_name;
+        document.getElementById('tBalance').textContent = formatINR(data.treasury.account_balance);
+        document.getElementById('tCommitments').textContent = formatINR(data.treasury.total_unpaid_commitments);
+        document.getElementById('tAvailable').textContent = formatINR(data.treasury.available_balance);
+        document.getElementById('tAutoLimit').textContent = formatINR(data.treasury.autonomous_limit);
+
+        // Tier 4 ML Forecast
+        document.getElementById('mCash').textContent = formatINR(data.ml_forecast.predicted_cash_3m);
+        document.getElementById('mRunway').textContent = data.ml_forecast.predicted_runway_months + ' mos';
+        document.getElementById('mShortage').textContent = (data.ml_forecast.cash_shortage_probability * 100).toFixed(1) + '%';
+        document.getElementById('mConfidence').textContent = (data.ml_forecast.model_confidence ? (data.ml_forecast.model_confidence * 100).toFixed(0) : '95') + '%';
+
+        const mlBadge = document.getElementById('mlRiskBadge');
+        mlBadge.textContent = data.ml_forecast.financial_risk_level + ' RISK';
+        mlBadge.className = 'tag-badge ' + (data.ml_forecast.financial_risk_level === 'LOW' ? 'badge-approved' : data.ml_forecast.financial_risk_level === 'MEDIUM' ? 'badge-pending' : 'badge-blocked');
+
+        // Tier 2 Policy RAG
+        document.getElementById('policyContent').textContent = data.policy_rag.matched_rules;
+        document.getElementById('ctoFlagBadge').style.display = data.policy_rag.requires_cto_signoff ? 'inline-block' : 'none';
+
+        // Tier 3 Deals Table
+        const tbody = document.getElementById('dealsTableBody');
+        tbody.innerHTML = '';
+        if (data.market_deals && data.market_deals.length > 0 && !data.market_deals[0].error) {
+          document.getElementById('dealsCount').textContent = data.market_deals.length + ' Candidate(s) Under Budget Ceiling';
+          data.market_deals.forEach(d => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong style="color: var(--text);">${d.platform}</strong></td>
+              <td>${d.product_name}</td>
+              <td class="price">${formatINR(d.price_inr)}</td>
+              <td style="color: var(--green); font-family: var(--font-mono);">+${formatINR(d.savings_vs_budget)}</td>
+              <td>${d.source_url ? `<a href="${d.source_url}" target="_blank" style="color: var(--blue); text-decoration: none;">View Listing ↗</a>` : '—'}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          document.getElementById('dealsCount').textContent = '0 Deals Found Under Budget';
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--amber);">No items found strictly below ₹${unit_budget.toLocaleString('en-IN')}. Target budget used for evaluation.</td></tr>`;
+        }
+
+        // Decision Banner
+        const decBanner = document.getElementById('decisionBanner');
+        const decBadge = document.getElementById('decisionStatusBadge');
+        decBanner.className = 'decision-banner ' + data.decision.status;
+        decBadge.className = 'tag-badge ' + (data.decision.status === 'APPROVED' ? 'badge-approved' : data.decision.status.includes('PENDING') ? 'badge-pending' : 'badge-blocked');
+        decBadge.textContent = data.decision.status.replace(/_/g, ' ');
+
+        document.getElementById('decisionReason').textContent = data.decision.reason;
+        document.getElementById('auditLogId').textContent = 'Audit Log ID: #' + (data.decision.audit_log_id || '99');
+
+        results.style.display = 'block';
+        results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
       } catch (err) {
-        error.textContent = err.message;
-        error.classList.add('visible');
-        status.classList.remove('active');
+        alert('Error executing pipeline: ' + err.message);
       } finally {
         btn.disabled = false;
-        btn.textContent = 'Search';
-        setTimeout(() => status.classList.remove('active'), 2000);
+        btn.innerHTML = '<span>⚡ Execute Agent Pipeline</span>';
       }
     }
 
     function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-    // Enter key support
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') runSearch();
-    });
   </script>
 </body>
 </html>

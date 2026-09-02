@@ -1,0 +1,33 @@
+{
+  "regressor": "XGBoost Regressor",
+  "classifier": "XGBoost Classifier",
+  "feature_columns": [
+    "current_cash",
+    "monthly_revenue",
+    "monthly_expenses",
+    "debt_obligations",
+    "burn_rate",
+    "proposed_purchase_amount",
+    "purchase_category_encoded"
+  ],
+  "regression_targets": [
+    "predicted_cash_3m",
+    "predicted_runway_months",
+    "cash_shortage_probability"
+  ],
+  "classification_target": "financial_risk_level",
+  "category_mapping": {
+    "Hardware": 0,
+    "Infrastructure": 1,
+    "Marketing": 2,
+    "Office Supplies": 3,
+    "Services": 4,
+    "Software": 5
+  },
+  "risk_classes": [
+    "CRITICAL",
+    "HIGH",
+    "LOW",
+    "MEDIUM"
+  ]
+}

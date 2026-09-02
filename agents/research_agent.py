@@ -1,6 +1,6 @@
 """
-research_agent.py
-─────────────────
+agents/research_agent.py
+------------------------
 Reusable product research module with budget-aware filtering.
 
 Exports three functions:
